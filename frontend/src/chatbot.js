@@ -176,7 +176,8 @@ const ChatComponent = () => {
 
   return (
     <div className="flex">
-      <div className="flex flex-col h-screen bg-blue-50 w-[60vw]  border border-blue-300 solid border-2 rounded-md m-2">
+      <div>
+      <div className="flex flex-col h-screen bg-blue-50 w-[60vw] h-[80vh]  border border-blue-300 solid border-2 rounded-md m-2">
         <h1 className="text-2xl  m-auto text-[blue] font-semibold  italic">
           Train Bot
         </h1>
@@ -208,7 +209,7 @@ const ChatComponent = () => {
         <hr></hr>
         <hr></hr>
         <hr></hr>
-        <div className="h-[120px] p-[5px] flex flex-wrap gap-1">
+        <div className="h-[80px] p-[5px] flex flex-wrap gap-1">
           <h2 className="italic">Try these :-</h2>
           {Object.entries(prompt).map(([id, value]) => (
             <span
@@ -239,7 +240,13 @@ const ChatComponent = () => {
             </button>
           </div>
         </div>
+        
+
       </div>
+      <div className="text-[1.3rem] text-black-400 font-semibold font-mono">
+        Indian Railways is more than just a means of transport; it is a lifeline that connects the nation.
+        </div>
+        </div>
       <div>
         <div className="">
           <div className="  flex flex-col p-4 w-[40vw] bg-white  border-t border-gray-300">
@@ -249,7 +256,7 @@ const ChatComponent = () => {
                 value={pnr}
                 onKeyDown={handleKeyPress}
                 onChange={handlepnrInputChange}
-                className=" p-2 border border-gray-300 w-[20vw] rounded-lg focus:outline-none focus:border-blue-500"
+                className=" p-2 border border-gray-300 w-[25vw] rounded-lg focus:outline-none focus:border-blue-500"
                 placeholder="Enter PNR Number"
               />
 
@@ -278,13 +285,15 @@ const ChatComponent = () => {
               <select
                 value={selectedValue}
                 onChange={handleChange}
-                className="appearance-none bg-white border border-gray-300 rounded-md py-2 px-4 leading-tight focus:outline-none focus:border-blue-500"
+                className="appearance-none bg-white border border-gray-300 rounded-md ml-[7px] py-2 px-4 leading-tight focus:outline-none focus:border-blue-500"
               >
                 <option value="0">0</option>
                 <option value="1">1</option>
                 <option value="2">2</option>
                 <option value="3">3</option>
               </select>
+              
+
               <button
                 onClick={handlepnr2}
                 className="ml-2 px-4  w-fit py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700"

@@ -4,7 +4,7 @@ const Pnr = (pnrdata) => {
   console.log(pnrdata);
   return (
     <div
-      className={`flex flex-col h-screen bg-blue-50 border border-blue-300 h-[40vh] rounded-md mt-2  p-4`}
+      className={`flex flex-col bg-blue-50 border border-blue-300 h-[40vh] rounded-md mt-2  p-4`}
     >
       <div className="mb-2">
         <span className="font-bold">Train No:</span>
