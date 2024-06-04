@@ -1,6 +1,9 @@
 import React, { useState } from "react";
+import Pnr from "./pnr";
+import Trainstatus from "./trainstatus";
 
 const ChatComponent = () => {
+  //////////////////////////////
   const prompt = {
     1: "fetch all Trains between JUC to LKO on 15-06-2024",
     2: "seat availabilty in 13006 from JUC to LKO on 15-06-2024 in 2A",
@@ -11,6 +14,83 @@ const ChatComponent = () => {
   };
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]);
+  const [pnr, setPnr] = useState("");
+  const [tnumber, setTnumber] = useState("");
+  const [pnrdata, setPnrdata] = useState({});
+  const [flag, setFlag] = useState(false);
+  const [flag2, setFlag2] = useState(false);
+  const [livedata, setLivedata] = useState({});
+  const [selectedValue, setSelectedValue] = useState("0");
+  const handleChange = (event) => {
+    setSelectedValue(event.target.value);
+  };
+  const handlepnrInputChange = (e) => {
+    setPnr(e.target.value);
+  };
+  const handletrainno = (e) => {
+    setTnumber(e.target.value);
+  };
+  const handlepnr2 = async () => {
+    const options = {
+      method: "GET",
+      headers: {
+        "X-RapidAPI-Key": "acf348aa99mshfca461ff7803c3cp1e01f4jsn36c9d0dd03b8",
+        "X-RapidAPI-Host": "irctc1.p.rapidapi.com",
+      },
+    };
+
+    const queryParams = new URLSearchParams({
+      trainNo: `${tnumber}`,
+      startDay: `${selectedValue}`,
+    });
+    setTnumber("");
+    const url = `https://irctc1.p.rapidapi.com/api/v1/liveTrainStatus?${queryParams}`;
+
+    fetch(url, options)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log(data);
+        setFlag2(true);
+        setLivedata(data.data);
+      })
+      .catch((error) => console.error(error));
+  };
+  const handlepnr = async () => {
+    const options = {
+      method: "GET",
+      headers: {
+        "X-RapidAPI-Key": "acf348aa99mshfca461ff7803c3cp1e01f4jsn36c9d0dd03b8",
+        "X-RapidAPI-Host": "irctc1.p.rapidapi.com",
+      },
+    };
+
+    const params = {
+      pnrNumber: `${pnr}`,
+    };
+    setPnr("");
+    const queryString = new URLSearchParams(params).toString();
+    const url = `https://irctc1.p.rapidapi.com/api/v3/getPNRStatus?${queryString}`;
+
+    try {
+      const response = await fetch(url, options);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log("yhn tk aya");
+      console.log(data);
+      setPnrdata(data.data);
+      // console.log(data.data.passsengerStatus[0].Berth);
+      setFlag(true);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const handleInputChange = (e) => {
     setInput(e.target.value);
@@ -76,34 +156,13 @@ const ChatComponent = () => {
         console.error("Error:", error);
       });
   };
-  ///////////////////
+
   const handleSendMessage = () => {
     if (input.trim() === "") return;
-
-    // Add the user message to the chat
     const userMessage = { sender: "user", text: input };
     setMessages((prevMessages) => [...prevMessages, userMessage]);
     console.log(input);
     handleClick(input);
-    // try {
-    //   const response = await fetch("http://localhost:3000/chat", {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //     body: JSON.stringify({ text: input }),
-    //   });
-
-    //   const data = await response.json();
-    //   const botMessage = { sender: "bot", text: data.reply };
-
-    //   // Add the bot response to the chat
-    //   setMessages((prevMessages) => [...prevMessages, userMessage, botMessage]);
-    // } catch (error) {
-    //   console.error("Error sending message:", error);
-    // }
-
-    // Clear the input field
     setInput("");
   };
   const handleKeyPress = (event) => {
@@ -182,23 +241,58 @@ const ChatComponent = () => {
         </div>
       </div>
       <div>
-        <div className="p-4 bg-white border-t border-gray-300">
-          <div className="flex">
-            <input
-              type="text"
-              value={input}
-              onKeyDown={handleKeyPress}
-              onChange={handleInputChange}
-              className="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-              placeholder="Type your message..."
-            />
+        <div className="">
+          <div className="  flex flex-col p-4 w-[40vw] bg-white  border-t border-gray-300">
+            <div className="flex">
+              <input
+                type="text"
+                value={pnr}
+                onKeyDown={handleKeyPress}
+                onChange={handlepnrInputChange}
+                className=" p-2 border border-gray-300 w-[20vw] rounded-lg focus:outline-none focus:border-blue-500"
+                placeholder="Enter PNR Number"
+              />
 
-            <button
-              onClick={handleSendMessage}
-              className="ml-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Find PNR Status
-            </button>
+              <button
+                onClick={handlepnr}
+                className="ml-2 px-4  w-fit py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Find PNR Status
+              </button>
+            </div>
+            {flag ? <Pnr pnrdata={pnrdata} /> : ""}
+          </div>
+        </div>
+        {/* train live status */}
+        <div className="">
+          <div className="  flex flex-col p-4 w-[40vw] bg-white  border-t border-gray-300">
+            <div className="flex">
+              <input
+                type="text"
+                value={tnumber}
+                onKeyDown={handleKeyPress}
+                onChange={handletrainno}
+                className=" p-2 border border-gray-300 w-[20vw] rounded-lg focus:outline-none focus:border-blue-500"
+                placeholder="Enter Train Number"
+              />
+              <select
+                value={selectedValue}
+                onChange={handleChange}
+                className="appearance-none bg-white border border-gray-300 rounded-md py-2 px-4 leading-tight focus:outline-none focus:border-blue-500"
+              >
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+              </select>
+              <button
+                onClick={handlepnr2}
+                className="ml-2 px-4  w-fit py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Enter Train Number
+              </button>
+            </div>
+            {flag2 ? <Trainstatus livedata={livedata} /> : ""}
           </div>
         </div>
       </div>
