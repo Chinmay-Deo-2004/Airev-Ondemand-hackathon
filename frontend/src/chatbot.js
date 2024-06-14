@@ -3,7 +3,6 @@ import Pnr from "./pnr";
 import Trainstatus from "./trainstatus";
 
 const ChatComponent = () => {
-  //////////////////////////////
   const prompt = {
     1: "fetch all Trains between JUC to LKO on 15-06-2024",
     2: "seat availabilty in 13006 from JUC to LKO on 15-06-2024 in 2A",
@@ -12,6 +11,8 @@ const ChatComponent = () => {
     5: "get train schedule of train 13006",
     6: "fetch PNR 213476892",
   };
+
+  // useState used
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]);
   const [pnr, setPnr] = useState("");
@@ -21,6 +22,8 @@ const ChatComponent = () => {
   const [flag2, setFlag2] = useState(false);
   const [livedata, setLivedata] = useState({});
   const [selectedValue, setSelectedValue] = useState("0");
+
+  // handleFunction
   const handleChange = (event) => {
     setSelectedValue(event.target.value);
   };
@@ -31,40 +34,64 @@ const ChatComponent = () => {
     setTnumber(e.target.value);
   };
   const handlepnr2 = async () => {
+    // Ensure train number and selected value are provided
+    if (!tnumber || !selectedValue) {
+      console.error("Train number and start day are required.");
+      return;
+    }
+
+    const apiKey = process.env.REACT_APP_RAPIDAPI_KEY;
+    console.log(apiKey);
+
     const options = {
       method: "GET",
       headers: {
-        "X-RapidAPI-Key": "acf348aa99mshfca461ff7803c3cp1e01f4jsn36c9d0dd03b8",
+        "X-RapidAPI-Key": apiKey,
         "X-RapidAPI-Host": "irctc1.p.rapidapi.com",
       },
     };
 
     const queryParams = new URLSearchParams({
-      trainNo: `${tnumber}`,
-      startDay: `${selectedValue}`,
+      trainNo: tnumber,
+      startDay: selectedValue,
     });
+
     setTnumber("");
     const url = `https://irctc1.p.rapidapi.com/api/v1/liveTrainStatus?${queryParams}`;
 
-    fetch(url, options)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log(data);
+    try {
+      const response = await fetch(url, options);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log(data);
+
+      if (data && data.data) {
         setFlag2(true);
         setLivedata(data.data);
-      })
-      .catch((error) => console.error(error));
+      } else {
+        console.error("Invalid data format received from API.");
+        setFlag2(false); // Optionally, set flag to false to indicate no valid data
+      }
+    } catch (error) {
+      console.error("Error fetching live train status:", error);
+      setFlag2(false); // Optionally, set flag to false to indicate an error occurred
+    }
   };
+
   const handlepnr = async () => {
+    // Ensure PNR number is provided
+    if (!pnr) {
+      console.error("PNR number is required.");
+      return;
+    }
+
     const options = {
       method: "GET",
       headers: {
-        "X-RapidAPI-Key": "acf348aa99mshfca461ff7803c3cp1e01f4jsn36c9d0dd03b8",
+        "X-RapidAPI-Key": process.env.REACT_APP_RAPIDAPI_KEY,
         "X-RapidAPI-Host": "irctc1.p.rapidapi.com",
       },
     };
@@ -72,6 +99,7 @@ const ChatComponent = () => {
     const params = {
       pnrNumber: `${pnr}`,
     };
+
     setPnr("");
     const queryString = new URLSearchParams(params).toString();
     const url = `https://irctc1.p.rapidapi.com/api/v3/getPNRStatus?${queryString}`;
@@ -81,14 +109,24 @@ const ChatComponent = () => {
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
+
       const data = await response.json();
-      console.log("yhn tk aya");
-      console.log(data);
-      setPnrdata(data.data);
-      // console.log(data.data.passsengerStatus[0].Berth);
-      setFlag(true);
+      console.log("Received response from API");
+
+      // Check if data is valid
+      if (data && data.data && data.data.passengerStatus) {
+        setPnrdata(data.data);
+        setFlag(true);
+      } else {
+        // Handle case where data is not in expected format
+        console.error("Invalid data format received from API.");
+        setFlag(false); // Optionally, you can set a flag to false to indicate no valid data
+      }
     } catch (error) {
-      console.error(error);
+      // Log and handle errors
+      console.error("Error fetching PNR status:", error);
+      // Optionally, set an error message state to display to the user
+      setFlag(false); // Optionally, you can set a flag to false to indicate an error occurred
     }
   };
 
@@ -177,76 +215,75 @@ const ChatComponent = () => {
   return (
     <div className="flex">
       <div>
-      <div className="flex flex-col h-screen bg-blue-50 w-[60vw] h-[80vh]  border border-blue-300 solid border-2 rounded-md m-2">
-        <h1 className="text-2xl  m-auto text-[blue] font-semibold  italic">
-          Train Bot
-        </h1>
-        <hr></hr>
-        <hr></hr>
+        <div className="flex flex-col h-screen bg-blue-50 w-[60vw] h-[80vh]  border border-blue-300 solid border-2 rounded-md m-2">
+          <h1 className="text-2xl  m-auto text-[blue] font-semibold  italic">
+            Train Bot
+          </h1>
+          <hr></hr>
+          <hr></hr>
 
-        <div className="flex-1 p-4 overflow-auto">
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              className={`mb-4 ${
-                message.sender === "user" ? "text-right" : "text-left"
-              }`}
-            >
+          <div className="flex-1 p-4 overflow-auto">
+            {messages.map((message, index) => (
               <div
-                className={`inline-block p-2 rounded-lg ${
-                  message.sender === "user"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-300 text-black"
+                key={index}
+                className={`mb-4 ${
+                  message.sender === "user" ? "text-right" : "text-left"
                 }`}
               >
-                {message.text}
+                <div
+                  className={`inline-block p-2 rounded-lg ${
+                    message.sender === "user"
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-300 text-black"
+                  }`}
+                >
+                  {message.text}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-        <hr className="text-black"></hr>
-        <hr></hr>
-        <hr></hr>
-        <hr></hr>
-        <hr></hr>
-        <div className="h-[80px] p-[5px] flex flex-wrap gap-1">
-          <h2 className="italic">Try these :-</h2>
-          {Object.entries(prompt).map(([id, value]) => (
-            <span
-              key={id}
-              className="m-[1px] px-2 text-[15px] py-1 bg-blue-400 text-white rounded-lg hover:bg-blue-300 cursor-pointer italic"
-              onClick={() => handlepromptClick(id, value)}
-            >
-              {value}
-            </span>
-          ))}
-        </div>
-        <div className="p-4 bg-white border-t border-gray-300">
-          <div className="flex">
-            <input
-              type="text"
-              value={input}
-              onKeyDown={handleKeyPress}
-              onChange={handleInputChange}
-              className="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-              placeholder="Type your message..."
-            />
+            ))}
+          </div>
+          <hr className="text-black"></hr>
+          <hr></hr>
+          <hr></hr>
+          <hr></hr>
+          <hr></hr>
+          <div className="h-[80px] p-[5px] flex flex-wrap gap-1">
+            <h2 className="italic">Try these :-</h2>
+            {Object.entries(prompt).map(([id, value]) => (
+              <span
+                key={id}
+                className="m-[1px] px-2 text-[15px] py-1 bg-blue-400 text-white rounded-lg hover:bg-blue-300 cursor-pointer italic"
+                onClick={() => handlepromptClick(id, value)}
+              >
+                {value}
+              </span>
+            ))}
+          </div>
+          <div className="p-4 bg-white border-t border-gray-300">
+            <div className="flex">
+              <input
+                type="text"
+                value={input}
+                onKeyDown={handleKeyPress}
+                onChange={handleInputChange}
+                className="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                placeholder="Type your message..."
+              />
 
-            <button
-              onClick={handleSendMessage}
-              className="ml-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Send
-            </button>
+              <button
+                onClick={handleSendMessage}
+                className="ml-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Send
+              </button>
+            </div>
           </div>
         </div>
-        
-
+        <div className="text-[1.3rem] text-black-400 font-semibold font-mono">
+          Indian Railways is more than just a means of transport; it is a
+          lifeline that connects the nation.
+        </div>
       </div>
-      <div className="text-[1.3rem] text-black-400 font-semibold font-mono">
-        Indian Railways is more than just a means of transport; it is a lifeline that connects the nation.
-        </div>
-        </div>
       <div>
         <div className="">
           <div className="  flex flex-col p-4 w-[40vw] bg-white  border-t border-gray-300">
@@ -292,7 +329,6 @@ const ChatComponent = () => {
                 <option value="2">2</option>
                 <option value="3">3</option>
               </select>
-              
 
               <button
                 onClick={handlepnr2}
