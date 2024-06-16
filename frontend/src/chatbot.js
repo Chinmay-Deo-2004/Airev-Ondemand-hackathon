@@ -111,10 +111,11 @@ const ChatComponent = () => {
       }
 
       const data = await response.json();
+      console.log(data);
       console.log("Received response from API");
 
       // Check if data is valid
-      if (data && data.data && data.data.passengerStatus) {
+      if (data && data.data) {
         setPnrdata(data.data);
         setFlag(true);
       } else {
